@@ -1,7 +1,6 @@
 import numpy as np
 import joblib
 import xgboost as xgb
-from sklearn.utils.class_weight import compute_sample_weight
 
 train_features = np.load('train_features.npy')
 test_features = np.load('test_features.npy')
@@ -9,11 +8,7 @@ val_features = np.load('val_features.npy')
 train_labels = np.load('train_labels.npy')
 test_labels = np.load('test_labels.npy')
 val_labels = np.load('val_labels.npy')
-
-sample_weights = compute_sample_weight(
-    class_weight='balanced',
-    y=train_labels
-)
+sample_weights = np.load('sample_weights.npy')
 
 XGB_decisionTree = xgb.XGBClassifier(
     n_estimators=50,      
