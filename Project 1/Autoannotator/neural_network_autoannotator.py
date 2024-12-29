@@ -2,11 +2,11 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, regularizers
 
-train_features = np.load('../Arrays/train_features.npy')
-val_features = np.load('../Arrays/val_features.npy')
-train_labels = np.load('../Arrays/train_labels.npy')
-val_labels = np.load('../Arrays/val_labels.npy')
-sample_weights = np.load('../Arrays/sample_weights.npy')
+train_features = np.load('train_features.npy')
+val_features = np.load('val_features.npy')
+train_labels = np.load('train_labels.npy')
+val_labels = np.load('val_labels.npy')
+sample_weights = np.load('sample_weights.npy')
 
 def create_model(input_size, num_classes, hidden_units, dropout_rate, l2_reg):
 
