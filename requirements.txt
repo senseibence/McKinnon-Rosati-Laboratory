@@ -43,7 +43,7 @@ ipython==8.29.0
 ipywidgets==8.1.5
 isoduration==20.11.0
 jedi==0.19.1
-Jinja2==3.1.4
+jinja2=3.1.5
 joblib==1.4.2
 json5==0.9.25
 jsonpointer==3.0.0
@@ -136,7 +136,7 @@ termcolor==2.5.0
 terminado==0.18.1
 threadpoolctl==3.5.0
 tinycss2==1.4.0
-tornado==6.4.1
+tornado=6.4.2
 tqdm==4.67.0
 traitlets==5.14.3
 types-python-dateutil==2.9.0.20241003
