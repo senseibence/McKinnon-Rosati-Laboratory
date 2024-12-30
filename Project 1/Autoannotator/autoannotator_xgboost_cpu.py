@@ -11,15 +11,15 @@ val_labels = np.load('val_labels.npy')
 sample_weights = np.load('sample_weights.npy')
 
 XGB_decisionTree = xgb.XGBClassifier(
-    n_estimators=500,      
-    learning_rate=0.05,
-    max_depth=8,
-    colsample_bytree=0.8,
-    subsample=0.8,
-    gamma=0.1,
+    n_estimators=1500,           
+    learning_rate=0.02,
+    max_depth=7,
+    colsample_bytree=0.7,
+    subsample=0.7,
+    gamma=0.2,
     objective='multi:softmax',
+    eval_metric=['mlogloss', 'merror'],
     early_stopping_rounds=30,
-    eval_metric='mlogloss'
 )
 
 XGB_decisionTree = XGB_decisionTree.fit(X=train_features, y=train_labels, eval_set=[(val_features, val_labels)], sample_weight=sample_weights)
