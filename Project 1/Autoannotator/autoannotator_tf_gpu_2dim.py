@@ -33,10 +33,10 @@ def create_model(input_size, num_classes, hidden_layers, dropout_rate, l2_reg, l
 
 input_size = train_features.shape[1] # 2
 num_classes = len(np.unique(train_labels)) # 30
-hidden_layers = [32, 16]
+hidden_layers = [128, 64, 32]
 dropout_rate = 0.1
 l2_reg = 1e-4
-learning_rate = 5e-5
+learning_rate = 1e-4
 epochs = 250
 batch_size = 128
 
