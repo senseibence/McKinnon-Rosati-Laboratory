@@ -41,17 +41,11 @@ learning_rate = 1e-4
 epochs = 250
 batch_size = 256
 
-strategy = tf.distribute.MirroredStrategy()
-print("# GPUs: {}".format(strategy.num_replicas_in_sync))
+model = create_model(input_size, num_classes, hidden_layers, dropout_rate, l2_reg, learning_rate)
 
-with strategy.scope():
-    model = create_model(input_size, num_classes, hidden_layers, dropout_rate, l2_reg, learning_rate)
-
-global_batch_size = batch_size * strategy.num_replicas_in_sync
-train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels, sample_weights)).batch(global_batch_size).cache().prefetch(tf.data.AUTOTUNE)
-val_dataset = tf.data.Dataset.from_tensor_slices((val_features, val_labels)).batch(global_batch_size).cache().prefetch(tf.data.AUTOTUNE)
+train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels, sample_weights)).batch(batch_size).cache().prefetch(tf.data.AUTOTUNE)
+val_dataset = tf.data.Dataset.from_tensor_slices((val_features, val_labels)).batch(batch_size).cache().prefetch(tf.data.AUTOTUNE)
 
 model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, verbose=2)
 
 model.save("/gpfs/scratch/blukacsy/granulomas_final_tf_nn_50dim_scanorama_v1.h5")
-
