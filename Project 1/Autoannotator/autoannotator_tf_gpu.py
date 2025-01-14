@@ -35,7 +35,7 @@ num_classes = len(np.unique(train_labels)) # 30
 hidden_layers = [8192, 4096, 2048, 1024] # [8192, 4096, 2048]
 dropout_rate = 0.5
 l2_reg = 1e-4
-learning_rate=1e-5 # 1e-4
+learning_rate = 1e-5 # 1e-4
 epochs = 1000 # 500
 batch_size = 512 # 256
 
@@ -52,4 +52,4 @@ val_dataset = tf.data.Dataset.from_tensor_slices((val_features, val_labels)).bat
 
 model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, verbose=2)
 
-model.save("../models/granulomas_final_tf_nn_v2.h5")
+model.save("/gpfs/scratch/blukacsy/granulomas_final_tf_nn_v2.h5")

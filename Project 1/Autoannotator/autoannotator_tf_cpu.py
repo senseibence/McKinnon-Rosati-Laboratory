@@ -44,4 +44,4 @@ model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate), l
 
 model.fit(train_features, train_labels, sample_weight=sample_weights, validation_data=(val_features, val_labels), epochs=epochs, batch_size=batch_size, verbose=2)
 
-model.save("../models/granulomas_final_tf_nn_v1.h5")
+model.save("/gpfs/scratch/blukacsy/granulomas_final_tf_nn_v1.h5")
