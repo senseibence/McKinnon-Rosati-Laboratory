@@ -6,23 +6,17 @@ Project 1/sc78_final.h5ad
 Project 1/sc92_final.h5ad
 Project 1/sc93_final.h5ad 
 Project 1/Arrays
-Project 1/McKinnon Files/06_lipid genes (1).ipynb
-Project 1/McKinnon Files/06_lipid genes (2).ipynb
-Project 1/McKinnon Files/06_lipid genes (3).ipynb
-Project 1/McKinnon Files/06_lipid genes (4).ipynb
 
-Project 2
+Project 2/granuloma 30/results/granulomas_clustered.h5ad
+Project 2/granuloma 30/results/granulomas_combat_corrected_scran.h5ad
+Project 2/granuloma 30/results/granulomas_final_raw.h5ad
+Project 2/granuloma 30/results/granulomas_harmony_corrected_scran.h5ad
+Project 2/granuloma 30/results/granulomas_lognorm_scran.h5ad
+Project 2/granuloma 30/results/granulomas_scanorama_corrected_scran.h5ad
 
-# Project 2/granuloma 30/results/granulomas_clustered.h5ad
-# Project 2/granuloma 30/results/granulomas_combat_corrected_scran.h5ad
-# Project 2/granuloma 30/results/granulomas_final_raw.h5ad
-# Project 2/granuloma 30/results/granulomas_harmony_corrected_scran.h5ad
-# Project 2/granuloma 30/results/granulomas_lognorm_scran.h5ad
-# Project 2/granuloma 30/results/granulomas_scanorama_corrected_scran.h5ad
-
-# Project 2/granuloma 60/results/sc92_clustered.h5ad
-# Project 2/granuloma 60/results/sc92_combat_corrected_scran.h5ad
-# Project 2/granuloma 60/results/sc92_final_raw.h5ad
-# Project 2/granuloma 60/results/sc92_harmony_corrected_scran.h5ad
-# Project 2/granuloma 60/results/sc92_lognorm_scran.h5ad
-# Project 2/granuloma 60/results/sc92_scanorama_corrected_scran.h5ad
+Project 2/granuloma 60/results/sc92_clustered.h5ad
+Project 2/granuloma 60/results/sc92_combat_corrected_scran.h5ad
+Project 2/granuloma 60/results/sc92_final_raw.h5ad
+Project 2/granuloma 60/results/sc92_harmony_corrected_scran.h5ad
+Project 2/granuloma 60/results/sc92_lognorm_scran.h5ad
+Project 2/granuloma 60/results/sc92_scanorama_corrected_scran.h5ad
