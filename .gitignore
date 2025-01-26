@@ -1,24 +1,8 @@
 env
 
-Project 1/controls_final.h5ad
-Project 1/granulomas_final.h5ad
-Project 1/sc78_final.h5ad
-Project 1/sc92_final.h5ad
-Project 1/sc93_final.h5ad 
 Project 1/Arrays
-
-Project 1/adata_airway_epithelium.h5ad
-Project 1/adata_alveolar_epithelium.h5ad
-Project 1/adata_b_lineage.h5ad
-Project 1/adata_blood_vessels.h5ad
-Project 1/adata_fibroblast.h5ad
-Project 1/adata_lymphatic_ec.h5ad
-Project 1/adata_macrophage.h5ad
-Project 1/adata_mesothelial.h5ad
-Project 1/adata_mononuclear.h5ad
-Project 1/adata_neutrophil.h5ad
-Project 1/adata_nk.h5ad
-Project 1/adata_t_lineage.h5ad
+Project 1/Data
+Project 1/Models
 
 Project 2/granuloma 30/results/granulomas_clustered.h5ad
 Project 2/granuloma 30/results/granulomas_combat_corrected_scran.h5ad
