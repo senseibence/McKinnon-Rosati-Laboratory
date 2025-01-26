@@ -68,6 +68,7 @@ def average_precision(y_true, y_score):
 def balanced_accuracy(y_true, y_pred):
     return metrics.balanced_accuracy_score(y_true, y_pred)
 
+print("\n\n\n")
 print("overall metrics:", overall_metrics(test_labels, max_indices))
 print("class metrics:", class_metrics(test_labels, max_indices))
 print("roc_auc ovr:", roc_auc_ovr(test_labels, prediction))
@@ -75,3 +76,4 @@ print("roc_auc ovo:", roc_auc_ovo(test_labels, prediction))
 print("average precision:", average_precision(test_labels, prediction))
 print("balanced accuracy:", balanced_accuracy(test_labels, max_indices))
 plot_confusion_matrix(test_labels, max_indices)
+print("\n\n\n")
