@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 import sklearn.metrics as metrics
 
-name = "airway_epithelium"
+name = "hv"
 
 test_features = np.load(f"../../Arrays/test_features_{name}.npy")
 test_labels = np.load(f"../../Arrays/test_labels_{name}.npy")
