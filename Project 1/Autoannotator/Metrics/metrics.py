@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 import sklearn.metrics as metrics
 
-name = "hv"
+name = "zebrafish"
 
 test_features = np.load(f"../../Arrays/test_features_{name}.npy")
 test_labels = np.load(f"../../Arrays/test_labels_{name}.npy")
@@ -12,7 +12,7 @@ test_labels = np.load(f"../../Arrays/test_labels_{name}.npy")
 binary = False
 if len(np.unique(test_labels)) == 2: binary = True
 
-model = keras.models.load_model(f"../../Models/granulomas_final_tf_nn_{name}_v1.h5") 
+model = keras.models.load_model(f"../../Models/zebrafish_tf_nn_v2.h5") 
 
 print(model.summary())
 
@@ -24,7 +24,7 @@ def overall_metrics(y_true, y_pred, average='weighted'):
 
     results = {
         'accuracy': metrics.accuracy_score(y_true, y_pred),
-        'precision': metrics.precision_score(y_true, y_pred, average=average),
+        'precision': metrics.precision_score(y_true, y_pred, average=average, zero_division=0),
         'recall': metrics.recall_score(y_true, y_pred, average=average),
         'f1_score': metrics.f1_score(y_true, y_pred, average=average),
     }
@@ -32,7 +32,7 @@ def overall_metrics(y_true, y_pred, average='weighted'):
     return results
 
 def class_metrics(y_true, y_pred):
-    return metrics.classification_report(y_true, y_pred)
+    return metrics.classification_report(y_true, y_pred, zero_division=0)
 
 def create_confusion_matrix(y_true, y_pred):
     return metrics.confusion_matrix(y_true, y_pred)
@@ -49,8 +49,8 @@ def plot_confusion_matrix(y_true, y_pred):
         print('total class 0:', np.sum(confusion_matrix[0]))
         print('total class 1:', np.sum(confusion_matrix[1]))
 
-    plt.figure(figsize=(8, 6))
-    sb.heatmap(confusion_matrix, annot=True, fmt="d", cmap='Reds', cbar=True, xticklabels=np.unique(test_labels), yticklabels=np.unique(test_labels))
+    plt.figure(figsize=(16, 14))
+    sb.heatmap(confusion_matrix, annot=False, fmt="d", cmap='Reds', cbar=True, xticklabels=np.unique(test_labels), yticklabels=np.unique(test_labels))
     plt.title('Confusion Matrix')
     plt.xlabel('Predicted Label')
     plt.ylabel('True Label')
