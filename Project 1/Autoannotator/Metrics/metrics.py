@@ -12,7 +12,7 @@ test_labels = np.load(f"../../Arrays/test_labels_{name}.npy")
 binary = False
 if len(np.unique(test_labels)) == 2: binary = True
 
-model = keras.models.load_model(f"../../Models/zebrafish_tf_nn_v2.h5") 
+model = keras.models.load_model(f"../../Models/{name}_tf_nn_v1.h5") 
 
 print(model.summary())
 
