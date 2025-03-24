@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 import sklearn.metrics as metrics
 
-name = "zebrafish"
+name = "scgnn"
 
 test_features = np.load(f"../../Arrays/test_features_{name}.npy")
 test_labels = np.load(f"../../Arrays/test_labels_{name}.npy")
@@ -12,7 +12,7 @@ test_labels = np.load(f"../../Arrays/test_labels_{name}.npy")
 binary = False
 if len(np.unique(test_labels)) == 2: binary = True
 
-model = keras.models.load_model(f"../../Models/{name}_tf_nn_v1.h5") 
+model = keras.models.load_model(f"../../Models/granulomas_final_tf_nn_{name}_v3.h5", custom_objects={'LeakyReLU': keras.layers.LeakyReLU})
 
 print(model.summary())
 
@@ -49,8 +49,8 @@ def plot_confusion_matrix(y_true, y_pred):
         print('total class 0:', np.sum(confusion_matrix[0]))
         print('total class 1:', np.sum(confusion_matrix[1]))
 
-    plt.figure(figsize=(16, 14))
-    sb.heatmap(confusion_matrix, annot=False, fmt="d", cmap='Reds', cbar=True, xticklabels=np.unique(test_labels), yticklabels=np.unique(test_labels))
+    plt.figure(figsize=(12, 10))
+    sb.heatmap(confusion_matrix, annot=True, fmt="d", cmap='Reds', cbar=True, xticklabels=np.unique(test_labels), yticklabels=np.unique(test_labels))
     plt.title('Confusion Matrix')
     plt.xlabel('Predicted Label')
     plt.ylabel('True Label')
