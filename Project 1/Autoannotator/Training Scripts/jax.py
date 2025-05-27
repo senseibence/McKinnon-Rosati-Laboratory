@@ -55,4 +55,4 @@ val_dataset = ks.data.Dataset.from_tensor_slices((val_features, val_labels)).cac
 
 model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, verbose=2)
 
-model.save("/gpfs/scratch/blukacsy/granulomas30_jax_v1.keras")
+model.save("/gpfs/scratch/blukacsy/granulomas30_jax_v1.keras") 
