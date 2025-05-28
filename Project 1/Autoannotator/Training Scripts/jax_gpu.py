@@ -1,15 +1,22 @@
-import os 
+import os
 os.environ["KERAS_BACKEND"] = "jax"
 
 import keras as ks
-import tensorflow as tf
+import jax
 import numpy as np
+from tensorflow import data
 
-train_features = np.load('/gpfs/scratch/blukacsy/train_features.npy')
-val_features = np.load('/gpfs/scratch/blukacsy/val_features.npy')
-train_labels = np.load('/gpfs/scratch/blukacsy/train_labels.npy')
-val_labels = np.load('/gpfs/scratch/blukacsy/val_labels.npy')
-sample_weights = np.load('/gpfs/scratch/blukacsy/sample_weights.npy')
+ks.mixed_precision.set_global_policy("mixed_float16")
+
+devices = jax.devices("gpu")
+data_parallel = ks.distribution.DataParallel(devices=devices)
+ks.distribution.set_distribution(data_parallel)
+
+train_features = np.load("/gpfs/scratch/blukacsy/train_features.npy")
+val_features = np.load("/gpfs/scratch/blukacsy/val_features.npy")
+train_labels = np.load("/gpfs/scratch/blukacsy/train_labels.npy")
+val_labels = np.load("/gpfs/scratch/blukacsy/val_labels.npy")
+sample_weights = np.load("/gpfs/scratch/blukacsy/sample_weights.npy")
 
 def create_model(input_size, num_classes, hidden_layers, dropout_rate, learning_rate_schedule, weight_decay):
 
@@ -22,12 +29,13 @@ def create_model(input_size, num_classes, hidden_layers, dropout_rate, learning_
         model.add(ks.layers.BatchNormalization())
         model.add(ks.layers.Dropout(dropout_rate))
 
-    model.add(ks.layers.Dense(num_classes, activation=ks.layers.Softmax()))
+    model.add(ks.layers.Dense(num_classes))
+    model.add(ks.layers.Activation("softmax", dtype="float32"))
 
     model.compile(
-        optimizer=ks.optimizers.AdamW(learning_rate=learning_rate_schedule, weight_decay=weight_decay), 
-        loss=ks.losses.SparseCategoricalCrossentropy(), 
-        metrics=[ks.metrics.SparseCategoricalAccuracy(name="accuracy")], 
+        optimizer=ks.optimizers.AdamW(learning_rate=learning_rate_schedule, weight_decay=weight_decay),
+        loss=ks.losses.SparseCategoricalCrossentropy(),
+        metrics=[ks.metrics.SparseCategoricalAccuracy(name="accuracy")],
         weighted_metrics=[ks.metrics.SparseCategoricalAccuracy(name="weighted_accuracy")]
     )
 
@@ -35,13 +43,13 @@ def create_model(input_size, num_classes, hidden_layers, dropout_rate, learning_
 
 input_size = train_features.shape[1]
 num_classes = len(np.unique(train_labels))
-hidden_layers = [1024, 256]
-dropout_rate = 0.5
-learning_rate = 1e-3
+hidden_layers = [2400, 60]
+dropout_rate = 0.8
+learning_rate = 1e-4
 weight_decay = 1e-4
 epochs = 1000
-warmup_epochs = 100
-batch_size = 256
+warmup_epochs = 50
+batch_size = 512
 
 steps_per_epoch = int(np.ceil(len(train_features)/batch_size))
 total_steps = epochs * steps_per_epoch
@@ -51,9 +59,11 @@ learning_rate_schedule = ks.optimizers.schedules.CosineDecay(initial_learning_ra
 
 model = create_model(input_size, num_classes, hidden_layers, dropout_rate, learning_rate_schedule, weight_decay)
 
-train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_labels, sample_weights)).cache().shuffle(len(train_features)).batch(batch_size).prefetch(tf.data.AUTOTUNE)
-val_dataset = tf.data.Dataset.from_tensor_slices((val_features, val_labels)).cache().batch(batch_size).prefetch(tf.data.AUTOTUNE)
+train_dataset = data.Dataset.from_tensor_slices((train_features, train_labels, sample_weights)).cache().shuffle(len(train_features), reshuffle_each_iteration=True).batch(batch_size, drop_remainder=True).prefetch(data.AUTOTUNE)
+val_dataset = data.Dataset.from_tensor_slices((val_features, val_labels)).cache().batch(batch_size, drop_remainder=True).prefetch(data.AUTOTUNE)
 
-model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, verbose=2)
+callback = ks.callbacks.EarlyStopping(monitor="val_loss", patience=50, verbose=1, restore_best_weights=True, start_from_epoch=50)
+
+model.fit(train_dataset, validation_data=val_dataset, epochs=epochs, callbacks=[callback], verbose=2)
 
 model.save("/gpfs/scratch/blukacsy/granulomas30_jax_v1.keras")
