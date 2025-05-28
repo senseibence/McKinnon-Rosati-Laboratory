@@ -43,10 +43,10 @@ def create_model(input_size, num_classes, hidden_layers, dropout_rate, learning_
 
 input_size = train_features.shape[1]
 num_classes = len(np.unique(train_labels))
-hidden_layers = [2400, 60]
-dropout_rate = 0.8
+hidden_layers = [2400, 60] # hv: [300]
+dropout_rate = 0.8 # hv: 0.85
 learning_rate = 1e-4
-weight_decay = 1e-4
+weight_decay = 1e-4 # hv: 1e-2
 epochs = 1000
 warmup_epochs = 50
 batch_size = 512
