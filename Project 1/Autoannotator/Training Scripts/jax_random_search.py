@@ -1,3 +1,6 @@
+# purely openai codex
+# I have not run this code
+
 import os
 os.environ["KERAS_BACKEND"] = "jax"
 
