@@ -4,7 +4,7 @@ from seaborn import blend_palette
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpcl
 
-# Wes Anderson pastels for clusters on UMAP plots
+# Wes Anderson pastels for clusters on UMAP plots 
 wes = ['#8DD3C7','#FFFFB3','#BEBADA','#FB8072','#80B1D3','#FDB462','#B3DE69','#FCCDE5','#D9D9D9','#BC80BD','#CCEBC5','#FFED6F',
             '#77AADD','#EE8866','#EEDD88','#FFAABB','#99DDFF','#44BB99','#BBCC33','#999900','#BC9CC9','#295A8B',
              '#B14D2C','#C2AA36','#D4788A','#3E8AB1','#158364','#737A38','#4E4E00','#835794','#EDF761','#4D8CC4',
