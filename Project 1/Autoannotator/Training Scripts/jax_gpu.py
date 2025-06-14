@@ -44,10 +44,10 @@ def create_model(input_size, num_classes, hidden_layers, dropout_rate, learning_
 
 input_size = train_features.shape[1]
 num_classes = len(np.unique(train_labels))
-hidden_layers = [2400, 60] # hvg: [300]
-dropout_rate = 0.8 # hvg: 0.85
+hidden_layers = [2400, 60]
+dropout_rate = 0.8
 learning_rate = 1e-4
-weight_decay = 1e-4 # hvg: 1e-2
+weight_decay = 1e-4
 epochs = 1000
 warmup_epochs = 50
 batch_size = 512
@@ -60,7 +60,7 @@ learning_rate_schedule = ks.optimizers.schedules.CosineDecay(initial_learning_ra
 
 model = create_model(input_size, num_classes, hidden_layers, dropout_rate, learning_rate_schedule, weight_decay)
 
-train_dataset = data.Dataset.from_tensor_slices((train_features, train_labels)).cache().shuffle(len(train_features), reshuffle_each_iteration=True).batch(batch_size).prefetch(data.AUTOTUNE)
+train_dataset = data.Dataset.from_tensor_slices((train_features, train_labels)).cache().shuffle(len(train_features), reshuffle_each_iteration=True, seed=4711).batch(batch_size).prefetch(data.AUTOTUNE)
 val_dataset = data.Dataset.from_tensor_slices((val_features, val_labels)).cache().batch(batch_size).prefetch(data.AUTOTUNE)
 
 callback = ks.callbacks.EarlyStopping(monitor="val_loss", patience=50, verbose=1, restore_best_weights=True, start_from_epoch=50)
