@@ -2,6 +2,7 @@ import os
 os.environ["KERAS_BACKEND"] = "jax"
 
 import json
+import sys
 import keras as ks
 import jax
 import numpy as np
@@ -16,18 +17,26 @@ devices = jax.devices("gpu")
 data_parallel = ks.distribution.DataParallel(devices=devices)
 ks.distribution.set_distribution(data_parallel)
 
-train_features = np.load("/gpfs/scratch/blukacsy/train_features_hvg_top_level.npy")
-val_features = np.load("/gpfs/scratch/blukacsy/val_features_hvg_top_level.npy")
-train_labels = np.load("/gpfs/scratch/blukacsy/train_labels_hvg_top_level.npy")
-val_labels = np.load("/gpfs/scratch/blukacsy/val_labels_hvg_top_level.npy")
-weights = np.load("/gpfs/scratch/blukacsy/weights_hvg_top_level.npy")
+inputs = sys.argv[1:]
+dataset_name = str(inputs[0])
+group_name = str(inputs[1])
+
+train_features = np.load(f"/gpfs/scratch/blukacsy/{dataset_name}_train_features_hvg_{group_name}.npy")
+val_features = np.load(f"/gpfs/scratch/blukacsy/{dataset_name}_val_features_hvg_{group_name}.npy")
+train_labels = np.load(f"/gpfs/scratch/blukacsy/{dataset_name}_train_labels_hvg_{group_name}.npy")
+val_labels = np.load(f"/gpfs/scratch/blukacsy/{dataset_name}_val_labels_hvg_{group_name}.npy")
+weights = np.load(f"/gpfs/scratch/blukacsy/{dataset_name}_weights_hvg_{group_name}.npy")
 class_weights = dict(enumerate(weights))
 
-features = train_features.shape[1]
-num_samples = train_features.shape[0]
 num_classes = len(np.unique(train_labels))
+num_samples = train_features.shape[0]
+features = train_features.shape[1]
+
+core_train_dataset = data.Dataset.from_tensor_slices((train_features, train_labels)).cache().shuffle(num_samples, reshuffle_each_iteration=True)
+core_val_dataset = data.Dataset.from_tensor_slices((val_features, val_labels)).cache()
+
 epochs = 1000
-min_batch_size = int(num_samples/250)
+min_batch_size = max(1, num_samples//500)
 
 def create_model(params):
 
@@ -51,7 +60,7 @@ def create_model(params):
     model.add(ks.layers.Dense(num_classes))
     model.add(ks.layers.Activation("softmax", dtype="float32"))
 
-    steps_per_epoch = int(np.ceil(len(train_features)/batch_size))
+    steps_per_epoch = int(np.ceil(num_samples/batch_size))
     total_steps = epochs * steps_per_epoch
     warmup_steps = warmup_epochs * steps_per_epoch
     decay_steps = total_steps - warmup_steps
@@ -84,8 +93,8 @@ def objective(trial):
     model = create_model(hyperparameters)
     batch_size = hyperparameters["batch_size"]
 
-    train_dataset = data.Dataset.from_tensor_slices((train_features, train_labels)).cache().shuffle(len(train_features), reshuffle_each_iteration=True).batch(batch_size).prefetch(data.AUTOTUNE)
-    val_dataset = data.Dataset.from_tensor_slices((val_features, val_labels)).cache().batch(batch_size).prefetch(data.AUTOTUNE)
+    train_dataset = core_train_dataset.batch(batch_size).prefetch(data.AUTOTUNE)
+    val_dataset = core_val_dataset.batch(batch_size).prefetch(data.AUTOTUNE)
 
     early_stopping_callback = ks.callbacks.EarlyStopping(monitor="val_loss", patience=200, verbose=0, restore_best_weights=True, start_from_epoch=0)
     pruning_callback = KerasPruningCallback(trial, "val_loss")
@@ -93,26 +102,22 @@ def objective(trial):
     history = model.fit(train_dataset, validation_data=val_dataset, class_weight=class_weights, epochs=epochs, callbacks=[early_stopping_callback, pruning_callback], verbose=0)
 
     loss = min(history.history["val_loss"])
-    # ks.backend.clear_session()
+    ks.backend.clear_session()
     return loss
 
-study = optuna.create_study(direction="minimize", sampler=optuna.samplers.TPESampler(multivariate=True), pruner=optuna.pruners.HyperbandPruner(min_resource=50, max_resource=epochs, reduction_factor=3))
+study = optuna.create_study(direction="minimize", sampler=optuna.samplers.TPESampler(multivariate=True, warn_independent_sampling=False), pruner=optuna.pruners.HyperbandPruner(min_resource=50, max_resource=epochs, reduction_factor=3))
 study.optimize(objective, n_trials=300)
-
-print("val_loss:", study.best_value)
-print("hyperparameters:", study.best_params)
 
 params = study.best_params
 hidden_layers = [params[f"units_{i}"] for i in range(params["depth"])]
 params["hidden_layers"] = hidden_layers
 batch_size = params["batch_size"]
-print()
-print(params["hidden_layers"])
-print(params["batch_size"])
 
 train_features = np.concatenate([train_features, val_features])
 train_labels = np.concatenate([train_labels, val_labels])
-train_dataset = data.Dataset.from_tensor_slices((train_features, train_labels)).cache().shuffle(len(train_features), reshuffle_each_iteration=True).batch(batch_size).prefetch(data.AUTOTUNE)
+num_samples = train_features.shape[0]
+
+train_dataset = data.Dataset.from_tensor_slices((train_features, train_labels)).cache().shuffle(num_samples, reshuffle_each_iteration=True).batch(batch_size).prefetch(data.AUTOTUNE)
 
 weights = compute_class_weight(class_weight='balanced', classes=np.unique(train_labels), y=train_labels)
 weights = np.array(weights)
@@ -123,7 +128,7 @@ model = create_model(params)
 early_stopping_callback = ks.callbacks.EarlyStopping(monitor="loss", patience=200, verbose=1, restore_best_weights=True, start_from_epoch=0)
 model.fit(train_dataset, class_weight=class_weights, epochs=epochs, callbacks=[early_stopping_callback], verbose=2)
 
-model.save("/gpfs/scratch/blukacsy/granulomas30_hvg_top_level_jax_optuna_v1.keras")
+model.save(f"/gpfs/scratch/blukacsy/{dataset_name}_hvg_{group_name}_jax_v1.keras")
 
-with open("/gpfs/scratch/blukacsy/granulomas30_hvg_top_level_hyperparameters.json", "w") as file:
+with open(f"/gpfs/scratch/blukacsy/{dataset_name}_hvg_{group_name}_hyperparameters.json", "w") as file:
     json.dump(params, file, indent=4)
