@@ -6,6 +6,7 @@ import keras as ks
 import jax
 import numpy as np
 from tensorflow import data
+from sklearn.utils.class_weight import compute_class_weight
 import optuna
 from optuna.integration import KerasPruningCallback
 
@@ -15,17 +16,18 @@ devices = jax.devices("gpu")
 data_parallel = ks.distribution.DataParallel(devices=devices)
 ks.distribution.set_distribution(data_parallel)
 
-train_features = np.load("/gpfs/scratch/blukacsy/granulomas30_train_features.npy")
-val_features = np.load("/gpfs/scratch/blukacsy/granulomas30_val_features.npy")
-train_labels = np.load("/gpfs/scratch/blukacsy/granulomas30_train_labels.npy")
-val_labels = np.load("/gpfs/scratch/blukacsy/granulomas30_val_labels.npy")
-weights = np.load("/gpfs/scratch/blukacsy/granulomas30_weights.npy")
+train_features = np.load("/gpfs/scratch/blukacsy/train_features_hvg_top_level.npy")
+val_features = np.load("/gpfs/scratch/blukacsy/val_features_hvg_top_level.npy")
+train_labels = np.load("/gpfs/scratch/blukacsy/train_labels_hvg_top_level.npy")
+val_labels = np.load("/gpfs/scratch/blukacsy/val_labels_hvg_top_level.npy")
+weights = np.load("/gpfs/scratch/blukacsy/weights_hvg_top_level.npy")
 class_weights = dict(enumerate(weights))
 
 features = train_features.shape[1]
 num_samples = train_features.shape[0]
 num_classes = len(np.unique(train_labels))
 epochs = 1000
+min_batch_size = int(num_samples/250)
 
 def create_model(params):
 
@@ -75,7 +77,7 @@ def objective(trial):
         "negative_slope" : trial.suggest_float("negative_slope", 1e-4, 5e-1, log=True),
         "learning_rate" : trial.suggest_float("learning_rate", 1e-6, 1e-2, log=True),
         "weight_decay" : trial.suggest_float("weight_decay", 1e-5, 1e-1, log=True),
-        "batch_size" : trial.suggest_int("batch_size", 1, num_samples, log=True),
+        "batch_size" : trial.suggest_int("batch_size", min_batch_size, num_samples, log=True),
         "warmup_epochs" : trial.suggest_int("warmup_epochs", 5, 50)
     }
 
@@ -91,11 +93,11 @@ def objective(trial):
     history = model.fit(train_dataset, validation_data=val_dataset, class_weight=class_weights, epochs=epochs, callbacks=[early_stopping_callback, pruning_callback], verbose=0)
 
     loss = min(history.history["val_loss"])
-    ks.backend.clear_session()
+    # ks.backend.clear_session()
     return loss
 
-study = optuna.create_study(direction="minimize", sampler=optuna.samplers.TPESampler(multivariate=True, group=False), pruner=optuna.pruners.HyperbandPruner(min_resource=50, max_resource=epochs, reduction_factor=3))
-study.optimize(objective, n_trials=100)
+study = optuna.create_study(direction="minimize", sampler=optuna.samplers.TPESampler(multivariate=True), pruner=optuna.pruners.HyperbandPruner(min_resource=50, max_resource=epochs, reduction_factor=3))
+study.optimize(objective, n_trials=300)
 
 print("val_loss:", study.best_value)
 print("hyperparameters:", study.best_params)
@@ -104,17 +106,24 @@ params = study.best_params
 hidden_layers = [params[f"units_{i}"] for i in range(params["depth"])]
 params["hidden_layers"] = hidden_layers
 batch_size = params["batch_size"]
-
-model = create_model(params)
+print()
+print(params["hidden_layers"])
+print(params["batch_size"])
 
 train_features = np.concatenate([train_features, val_features])
 train_labels = np.concatenate([train_labels, val_labels])
 train_dataset = data.Dataset.from_tensor_slices((train_features, train_labels)).cache().shuffle(len(train_features), reshuffle_each_iteration=True).batch(batch_size).prefetch(data.AUTOTUNE)
 
+weights = compute_class_weight(class_weight='balanced', classes=np.unique(train_labels), y=train_labels)
+weights = np.array(weights)
+class_weights = dict(enumerate(weights))
+
+model = create_model(params)
+
 early_stopping_callback = ks.callbacks.EarlyStopping(monitor="loss", patience=200, verbose=1, restore_best_weights=True, start_from_epoch=0)
 model.fit(train_dataset, class_weight=class_weights, epochs=epochs, callbacks=[early_stopping_callback], verbose=2)
 
-model.save("/gpfs/scratch/blukacsy/granulomas30_jax_v1.keras")
+model.save("/gpfs/scratch/blukacsy/granulomas30_hvg_top_level_jax_optuna_v1.keras")
 
-with open("/gpfs/scratch/blukacsy/granulomas30_hyperparameters.json", "w") as file: 
+with open("/gpfs/scratch/blukacsy/granulomas30_hvg_top_level_hyperparameters.json", "w") as file:
     json.dump(params, file, indent=4)
