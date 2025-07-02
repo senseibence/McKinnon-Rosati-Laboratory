@@ -101,7 +101,11 @@ def objective(trial):
 
     history = model.fit(train_dataset, validation_data=val_dataset, class_weight=class_weights, epochs=epochs, callbacks=[early_stopping_callback, pruning_callback], verbose=0)
 
-    loss = min(history.history["val_loss"])
+    val_loss_history = history.history["val_loss"]
+    best_epoch = int(np.argmin(val_loss_history))
+    trial.set_user_attr("best_epoch", best_epoch)
+    loss = min(val_loss_history)
+
     ks.backend.clear_session()
     return loss
 
@@ -125,8 +129,8 @@ class_weights = dict(enumerate(weights))
 
 model = create_model(params)
 
-early_stopping_callback = ks.callbacks.EarlyStopping(monitor="loss", patience=200, verbose=1, restore_best_weights=True, start_from_epoch=0)
-model.fit(train_dataset, class_weight=class_weights, epochs=epochs, callbacks=[early_stopping_callback], verbose=2)
+epochs = study.best_trial.user_attrs["best_epoch"] + 1
+model.fit(train_dataset, class_weight=class_weights, epochs=epochs, verbose=2)
 
 model.save(f"/gpfs/scratch/blukacsy/{dataset_name}_hvg_{group_name}_jax_v1.keras")
 
