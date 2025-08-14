@@ -129,6 +129,7 @@ class_weights = dict(enumerate(weights))
 model = create_model(params)
 
 epochs = study.best_trial.user_attrs["best_epoch"] + 1
+epochs = max(epochs, 25)
 model.fit(train_dataset, class_weight=class_weights, epochs=epochs, verbose=2)
 
 model.save(f"/gpfs/scratch/blukacsy/{dataset_name}_hvg_{group_name}_jax_v1.keras")
